@@ -45,25 +45,36 @@ const Upload = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen p-4 bg-gray-50">
-      <h1 className="text-3xl font-bold mb-6 text-blue-700">Upload Your Resume</h1>
+    <div className="relative flex items-center justify-center h-screen"  style={{ height: 'calc(125vh - 64px)' }}>
+      {/* Background image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-150"
+        style={{ backgroundImage: `url('/upload.png')` }}
+      ></div>
 
-      <input
-        type="file"
-        accept=".pdf"
-        onChange={handleFileChange}
-        className="mb-4 px-4 py-2 border rounded"
-      />
+      {/* Main content */}
+      <div className="relative flex flex-col items-center  p-4 bg-white bg-opacity-80 rounded-lg shadow-lg">
+        <h1 className="text-3xl font-bold mb-6 text-blue-700">
+          Upload Your Resume
+        </h1>
 
-      {error && <p className="text-red-600 mb-4">{error}</p>}
+        <input
+          type="file"
+          accept=".pdf"
+          onChange={handleFileChange}
+          className="mb-4 px-4 py-2 border rounded bg-white"
+        />
 
-      <button
-        onClick={handleUpload}
-        disabled={loading}
-        className={`px-6 py-2 rounded text-white ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'}`}
-      >
-        {loading ? 'Parsing Resume...' : 'Upload & Start Interview'}
-      </button>
+        {error && <p className="text-red-600 mb-4">{error}</p>}
+
+        <button
+          onClick={handleUpload}
+          disabled={loading}
+          className={`px-6 py-2 rounded text-white ${loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-500 hover:bg-blue-600'}`}
+        >
+          {loading ? 'Parsing Resume...' : 'Upload & Start Interview'}
+        </button>
+      </div>
     </div>
   );
 };
