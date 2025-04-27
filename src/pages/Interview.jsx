@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { InterviewContext } from '../contexts/InterviewContext';
@@ -41,13 +42,8 @@ const Interview = () => {
       skill: skill,
     }));
 
-    const projectQuestions = resumeData.projects.map((project, idx) => ({
-      id: skillQuestions.length + idx + 1,
-      question: `Describe your project: ${project.title}. What was your role?`,
-      skill: 'Projects',
-    }));
 
-    setQuestions([introQuestion, ...skillQuestions, ...projectQuestions]);
+    setQuestions([introQuestion, ...skillQuestions]);
   }, [resumeData]);
 
   // ✅ Timer countdown logic
@@ -73,18 +69,18 @@ const Interview = () => {
     if (!isInterviewStarted) {
       const userName = prompt("Enter your name:");
       const userEmail = prompt("Enter your email:");
-      
+
       if (!userName || !userEmail) {
         alert("Name and email are required to start the interview.");
-        return;
+        return; 
       }
-  
+
       setUser({ name: userName, email: userEmail });
-  
+
       // Proceed with interview session creation
       setIsInterviewStarted(true);
       setTimer(600);
-  
+
       try {
         const sessionId = await createInterviewSession();
         setInterviewSessionId(sessionId);
@@ -92,11 +88,11 @@ const Interview = () => {
       } catch (error) {
         console.error('Failed to create interview session:', error);
       }
-  
+
       startSpeechRecognition();
     }
   };
-  
+
 
   // ✅ Start and persist speech recognition
   const startSpeechRecognition = () => {
@@ -146,41 +142,41 @@ const Interview = () => {
       console.error('Interview session not initialized!');
       return;
     }
-    
-  if (!currentQuestion || currentQuestion.id === undefined) {
-    console.error('Invalid currentQuestion:', currentQuestion);
-    return;
-  }
-  
-  try {
-    const aiFeedback = await analyzeAnswerWithOpenAI(answer);
 
-    const answerObj = {
-      questionId: currentQuestion.id,
-      questionText: currentQuestion.question,
-      answerText: answer,
-      score: aiFeedback.score,
-      strengths: aiFeedback.strengths,
-      areas_to_improve: aiFeedback.areas_to_improve,
-    };
+    if (!currentQuestion || currentQuestion.id === undefined) {
+      console.error('Invalid currentQuestion:', currentQuestion);
+      return;
+    }
 
-    console.log('Saving Answer Object:', answerObj);
+    try {
+      const aiFeedback = await analyzeAnswerWithOpenAI(answer);
 
-  
+      const answerObj = {
+        questionId: currentQuestion.id,
+        questionText: currentQuestion.question,
+        answerText: answer || '',
+        score: aiFeedback?.score ?? 0,
+        strengths: aiFeedback?.strengths ?? [],
+        areas_to_improve: aiFeedback?.areas_to_improve ?? [],
+        timestamp: new Date().toISOString()
+      };
+
+
+      console.log('Saving Answer Object:', answerObj);
+
+
       // ✅ Save locally
       saveAnswer(
         currentQuestion.id,
         answer,
-        aiFeedback.score,
-        aiFeedback.strengths,
-        aiFeedback.areas_to_improve
+        answerObj.timestamp // ✅ pass timestamp
       );
-  
+
       // ✅ Save to Firestore (fixed rules)
       await saveAnswerToFirestore(interviewSessionId, answerObj);
-  
+
       console.log('Answer saved to Firestore:', answerObj);
-  
+
       // ✅ Mark completed skill NOW!
       const skill = currentQuestion.skill;
       if (
@@ -191,12 +187,12 @@ const Interview = () => {
         setCompletedSkills(prevSkills => [...prevSkills, skill]);
         console.log(`Skill marked: ${skill}`);
       }
-  
+
     } catch (error) {
       console.error('Error saving answer:', error);
     }
   };
-  
+
 
   // ✅ Handle next question click
   const handleNextQuestion = async () => {
@@ -238,6 +234,7 @@ const Interview = () => {
   };
 
   return (
+
     <div className="flex min-h-screen bg-white">
       <div className="w-3/4 p-8">
         <div className="flex justify-between items-center mb-6">
@@ -261,9 +258,8 @@ const Interview = () => {
               <button
                 onClick={handleStartInterview}
                 disabled={isInterviewStarted}
-                className={`px-6 py-3 rounded text-white transition-all ${
-                  isInterviewStarted ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'
-                }`}
+                className={`px-6 py-3 rounded text-white transition-all ${isInterviewStarted ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'
+                  }`}
               >
                 {isInterviewStarted ? 'Interview Running...' : 'Start Interview'}
               </button>
@@ -288,11 +284,10 @@ const Interview = () => {
           {resumeData?.skills?.map((skill, index) => (
             <li
               key={index}
-              className={`p-2 rounded flex justify-between items-center ${
-                completedSkills.includes(skill)
+              className={`p-2 rounded flex justify-between items-center ${completedSkills.includes(skill)
                   ? 'bg-green-300 text-green-800'
                   : 'bg-gray-300 text-gray-700'
-              }`}
+                }`}
             >
               <span>{skill}</span>
               {completedSkills.includes(skill) && <span>✅</span>}

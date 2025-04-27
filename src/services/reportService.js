@@ -10,19 +10,19 @@ export const generatePDFReport = (interviewResults) => {
 
   doc.setFontSize(12);
   doc.text(`Candidate: ${interviewResults.userName || 'N/A'}`, 14, 32);
-  doc.text(`Total Score: ${interviewResults.totalScore || 0}/10`, 14, 40);
+  // doc.text(`Total Score: ${interviewResults.totalScore || 0}/10`, 14, 40);
 
   const tableData = interviewResults.answers.map((ans, index) => [
     index + 1,
     ans.question,
     ans.answer,
-    ans.score,
-    ans.strengths.join(', '),
-    ans.areasToImprove.join(', ')
+    // ans.score,
+    // ans.strengths.join(', '),
+    // ans.areasToImprove.join(', ')
   ]);
 
   doc.autoTable({
-    head: [['#', 'Question', 'Answer', 'Score', 'Strengths', 'Areas to Improve']],
+    head: [['#', 'Question', 'Answer', ]],
     body: tableData,
     startY: 50
   });

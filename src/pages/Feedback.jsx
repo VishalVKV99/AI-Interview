@@ -20,21 +20,20 @@ const Feedback = () => {
       return;
     }
 
-    const totalScore = retrievedAnswers.reduce((acc, curr) => acc + (curr.score || 0), 0);
-    const avgScore = retrievedAnswers.length > 0 ? (totalScore / retrievedAnswers.length).toFixed(2) : 0;
+    // const totalScore = retrievedAnswers.reduce((acc, curr) => acc + (curr.score || 0), 0);
+    // const avgScore = retrievedAnswers.length > 0 ? (totalScore / retrievedAnswers.length).toFixed(2) : 0;
 
-    const strengths = retrievedAnswers.flatMap(a => a.strengths || []);
-    const areasToImprove = retrievedAnswers.flatMap(a => a.areas_to_improve || []);
+    // const strengths = retrievedAnswers.flatMap(a => a.strengths || []);
+    // const areasToImprove = retrievedAnswers.flatMap(a => a.areas_to_improve || []);
     // Calculate interview duration
     const startTime = retrievedAnswers.length ? new Date(retrievedAnswers[0].timestamp) : null;
     const endTime = retrievedAnswers.length ? new Date(retrievedAnswers[retrievedAnswers.length - 1].timestamp) : null;
     const interviewTime = startTime && endTime ? Math.round((endTime - startTime) / 60000) : "N/A"; // in minutes
 
     const finalFeedback = {
-      totalScore,
-      avgScore,
-      strengths: [...new Set(strengths)],
-      areasToImprove: [...new Set(areasToImprove)],
+      
+      // strengths: [...new Set(strengths)],
+      // areasToImprove: [...new Set(areasToImprove)],
       answers: retrievedAnswers,
       interviewTime, // ✅ Store total interview time
       timestamp: new Date().toISOString()
@@ -43,7 +42,7 @@ const Feedback = () => {
 
     setAnswers(retrievedAnswers);
     setFeedback(finalFeedback);
-
+    
     // ✅ Save to Firebase Firestore
     saveInterviewResult({
       ...finalFeedback
@@ -72,24 +71,24 @@ const Feedback = () => {
       {/* Performance Overview */}
       <div className="mt-6 text-left bg-gray-100 p-4 rounded shadow-sm">
         <h3 className="text-xl font-semibold mb-3">Your Performance</h3>
-        <p><strong>Total Score:</strong> {feedback.totalScore}</p>
-        <p><strong>Average Score per Question:</strong> {feedback.avgScore}</p>
-        <p><strong>Strengths:</strong> {feedback.strengths.length > 0 ? feedback.strengths.join(', ') : 'None'}</p>
-        <p><strong>Areas to Improve:</strong> {feedback.areasToImprove.length > 0 ? feedback.areasToImprove.join(', ') : 'None'}</p>
+        {/* <p><strong>Total Score:</strong> {feedback.totalScore}</p>
+        <p><strong>Average Score per Question:</strong> {feedback.avgScore}</p> */}
+        {/* <p><strong>Strengths:</strong> {feedback.strengths.length > 0 ? feedback.strengths.join(', ') : 'None'}</p> */}
+        {/* <p><strong>Areas to Improve:</strong> {feedback.areasToImprove.length > 0 ? feedback.areasToImprove.join(', ') : 'None'}</p> */}
       </div>
 
       {/* Answers Breakdown */}
       <div className="mt-6 bg-gray-50 p-4 rounded shadow-sm">
-        <h3 className="text-xl font-semibold mb-3">Answer Breakdown</h3>
+        {/* <h3 className="text-xl font-semibold mb-3">Answer Breakdown</h3> */}
         {answers.map((ans, idx) => (
           <div key={idx} className="mb-4 p-4 bg-white border rounded">
             <p className="mb-1">
               <strong>Q{idx + 1}:</strong> {questions.find(q => q.id === ans.questionId)?.question || 'Question not found'}
             </p>
             <p><strong>Your Answer:</strong> {ans.answerText}</p>
-            <p><strong>Score:</strong> {ans.score}</p>
-            <p><strong>Strengths:</strong> {ans.strengths?.join(', ') || 'None'}</p>
-            <p><strong>Areas to Improve:</strong> {ans.areas_to_improve?.join(', ') || 'None'}</p>
+            {/* <p><strong>Score:</strong> {ans.score}</p> */}
+            {/* <p><strong>Strengths:</strong> {ans.strengths?.join(', ') || 'None'}</p> */}
+            {/* <p><strong>Areas to Improve:</strong> {ans.areas_to_improve?.join(', ') || 'None'}</p> */}
           </div>
         ))}
       </div>

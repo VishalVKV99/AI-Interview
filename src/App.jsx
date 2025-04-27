@@ -6,7 +6,7 @@ import useRole from './hooks/useRole';
 import LandingPage from './pages/LandingPage';
 import Home from './pages/Home';
 import Upload from './pages/Upload';
-import Dashboard from './pages/Dashboard';
+// import Dashboard from './pages/Dashboard';
 import Interview from './pages/Interview';
 import Feedback from './pages/Feedback';
 import Signup from './pages/Signup';
@@ -52,9 +52,9 @@ const App = () => {
               <Route path="/upload" element={<PrivateRoute><Upload /></PrivateRoute>} />
               <Route path="/interview" element={<PrivateRoute><Interview /></PrivateRoute>} />
               <Route path="/feedback" element={<PrivateRoute><Feedback /></PrivateRoute>} />
-              <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
+              {/* <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} /> */}
               <Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
-              <Route path="/dashboard" element={<PrivateRoute><AdminRoute> <Dashboard /></AdminRoute></PrivateRoute>} />
+              {/* <Route path="/dashboard" element={<PrivateRoute><AdminRoute> <Dashboard /></AdminRoute></PrivateRoute>} /> */}
 
 
               {/* Fallback route */}

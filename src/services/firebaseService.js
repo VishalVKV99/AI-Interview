@@ -1,9 +1,36 @@
 import { db } from '../firebase';
-import {collection, addDoc, getDocs, doc, setDoc, getDoc, query, where, serverTimestamp } from 'firebase/firestore';
+import {
+  collection,
+  addDoc,
+  getDocs,
+  doc,
+  setDoc,
+  getDoc,
+  serverTimestamp
+} from 'firebase/firestore';
 import { auth } from '../firebase';
 
-// Create interview session
+/**
+ * ✅ Deeply sanitize an object by removing undefined values from nested objects/arrays.
+ */
+const deepSanitize = (input) => {
+  if (Array.isArray(input)) {
+    return input
+      .map(deepSanitize)
+      .filter((item) => item !== undefined);
+  } else if (input !== null && typeof input === 'object') {
+    return Object.fromEntries(
+      Object.entries(input)
+        .map(([key, value]) => [key, deepSanitize(value)])
+        .filter(([_, value]) => value !== undefined)
+    );
+  } else if (input !== undefined) {
+    return input;
+  }
+  return undefined;
+};
 
+// ✅ Create interview session
 export const createInterviewSession = async () => {
   const user = auth.currentUser;
   if (!user) {
@@ -12,7 +39,7 @@ export const createInterviewSession = async () => {
 
   try {
     const docRef = await addDoc(collection(db, 'interviewSessions'), {
-      ownerId: user.uid,       // ✅ REQUIRED for security rules!
+      ownerId: user.uid,
       createdAt: serverTimestamp(),
     });
 
@@ -23,8 +50,8 @@ export const createInterviewSession = async () => {
     throw error;
   }
 };
-// Save answer inside an interview session (answers subcollection)
 
+// ✅ Save answer inside interview session
 export const saveAnswerToFirestore = async (sessionId, answerObj) => {
   const user = auth.currentUser;
   if (!user) {
@@ -35,7 +62,7 @@ export const saveAnswerToFirestore = async (sessionId, answerObj) => {
     throw new Error('Session ID is required!');
   }
 
-  if (!answerObj.questionId) {
+  if (answerObj.questionId === undefined || answerObj.questionId === null) {
     console.error('Answer object missing questionId!', answerObj);
     throw new Error('Question ID is required to save an answer!');
   }
@@ -43,8 +70,8 @@ export const saveAnswerToFirestore = async (sessionId, answerObj) => {
   try {
     const answerRef = doc(collection(db, 'interviewSessions', sessionId, 'answers'));
     await setDoc(answerRef, {
-      ...answerObj,
-      ownerId: user.uid,               // optional but can help debug
+      ...deepSanitize(answerObj),
+      ownerId: user.uid,
       createdAt: serverTimestamp(),
     });
     console.log('Answer saved to Firestore:', answerObj);
@@ -54,7 +81,9 @@ export const saveAnswerToFirestore = async (sessionId, answerObj) => {
   }
 };
 
-// Save interview result to user's history subcollection
+// ✅ Save interview result to user's history
+import { query, where } from 'firebase/firestore';
+
 export const saveInterviewResult = async (resultData) => {
   const user = auth.currentUser;
   if (!user) {
@@ -69,18 +98,31 @@ export const saveInterviewResult = async (resultData) => {
     const userSnapshot = await getDoc(userRef);
 
     if (!userSnapshot.exists()) {
-      console.log('Creating missing user profile...');
       await setDoc(userRef, {
         uid: userId,
         email: user.email,
         role: 'candidate',
-        createdAt: serverTimestamp()
+        createdAt: serverTimestamp(),
       });
     }
 
+    const sanitizedData = deepSanitize(resultData);
     const historyRef = collection(db, 'users', userId, 'history');
+
+    // 👇 New: Check for similar result already existing
+    const querySnapshot = await getDocs(query(
+      historyRef,
+      where('timestamp', '==', sanitizedData.timestamp || ''),
+      where('interviewTime', '==', sanitizedData.interviewTime || 0)
+    ));
+
+    if (!querySnapshot.empty) {
+      console.log('Duplicate result found, skipping save.');
+      return; // Avoid saving duplicate
+    }
+
     await addDoc(historyRef, {
-      ...resultData,
+      ...sanitizedData,
       createdAt: serverTimestamp(),
     });
 
@@ -90,6 +132,8 @@ export const saveInterviewResult = async (resultData) => {
   }
 };
 
+
+// ✅ Get interview results
 export const getInterviewResults = async () => {
   const user = auth.currentUser;
   if (!user) {
@@ -98,12 +142,8 @@ export const getInterviewResults = async () => {
   }
 
   try {
-    const q = query(
-      collection(db, 'interviewResults'),
-      where('userId', '==', user.uid)
-    );
-
-    const querySnapshot = await getDocs(q);
+    const historyRef = collection(db, 'users', user.uid, 'history');
+    const querySnapshot = await getDocs(historyRef);
     const results = [];
 
     querySnapshot.forEach((doc) => {
@@ -112,7 +152,7 @@ export const getInterviewResults = async () => {
 
     return results;
   } catch (error) {
-    console.error('Error fetching interview results:', error);
+    console.error('Error fetching interview history:', error);
     return [];
   }
 };

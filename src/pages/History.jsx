@@ -12,9 +12,12 @@ const History = () => {
     const fetchResults = async () => {
       try {
         const data = await getInterviewResults();
-        // Filter only current user's results (important)
-        const userResults = data.filter(result => result.userId === currentUser?.uid);
-        setResults(userResults);
+
+        const sortedResults = data.sort(
+          (a, b) => new Date(b.timestamp) - new Date(a.timestamp)
+        );
+
+        setResults(sortedResults);
       } catch (error) {
         console.error('Error fetching interview results:', error);
       } finally {
@@ -23,7 +26,7 @@ const History = () => {
     };
 
     fetchResults();
-  }, [currentUser]);
+  }, []);
 
   if (loading) {
     return (
@@ -42,25 +45,34 @@ const History = () => {
   }
 
   return (
-    <div className="p-8 max-w-4xl mx-auto">
+    <div className="p-8 max-w-5xl mx-auto">
       <h1 className="text-2xl font-bold mb-6 text-center">Interview History</h1>
 
-      <table className="min-w-full bg-white border border-gray-300 shadow">
+      <table className="min-w-full bg-white border border-gray-300 shadow text-sm rounded-md overflow-hidden">
         <thead>
-          <tr className="bg-gray-100 text-left">
+          <tr className="bg-blue-100 text-left text-gray-700">
+            <th className="py-3 px-4 border-b">#</th>
+            <th className="py-3 px-4 border-b">Email</th>
             <th className="py-3 px-4 border-b">Date</th>
-            <th className="py-3 px-4 border-b">Score</th>
-            <th className="py-3 px-4 border-b text-center">Actions</th>
+            <th className="py-3 px-4 border-b text-center">Download</th>
           </tr>
         </thead>
         <tbody>
           {results.map((result, index) => (
             <tr key={index} className="hover:bg-gray-50">
-              <td className="py-3 px-4 border-b">{new Date(result.timestamp).toLocaleDateString()}</td>
-              <td className="py-3 px-4 border-b">{result.totalScore || 0}</td>
+              <td className="py-3 px-4 border-b">{index + 1}</td>
+              <td className="py-3 px-4 border-b">{result.userEmail || currentUser?.email || 'Anonymous'}</td>
+              <td className="py-3 px-4 border-b">
+                {result.timestamp
+                  ? new Date(result.timestamp).toLocaleString()
+                  : 'N/A'}
+              </td>
               <td className="py-3 px-4 border-b text-center">
                 <button
-                  onClick={() => generateFeedbackPDF(result, result.answers || [])}
+                  onClick={() =>
+                    generateFeedbackPDF(result, result.answers || [], currentUser, [], result.interviewTime)
+
+                  }
                   className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition"
                 >
                   Download Report

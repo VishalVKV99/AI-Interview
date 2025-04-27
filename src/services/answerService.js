@@ -9,30 +9,12 @@ let userAnswers = [];
  * @param {Array} strengths
  * @param {Array} areas_to_improve
  */
-export const saveAnswer = (questionId, answerText, score, strengths = [], areas_to_improve = []) => {
-  if (!questionId) {
-    console.error('Question ID is required to save an answer!');
-    return;
-  }
-
-  const existingIndex = userAnswers.findIndex(ans => ans.questionId === questionId);
-
-  const answerEntry = {
-    questionId,
-    answerText,
-    score,
-    strengths,
-    areas_to_improve
-  };
-
-  if (existingIndex > -1) {
-    userAnswers[existingIndex] = answerEntry;
-    console.log(`Answer Updated [Question ${questionId}]`, answerEntry);
-  } else {
-    userAnswers.push(answerEntry);
-    console.log(`Answer Added [Question ${questionId}]`, answerEntry);
-  }
+export const saveAnswer = (questionId, answerText, score, strengths, areas_to_improve, timestamp = new Date().toISOString()) => {
+  const answers = getAllAnswers();
+  answers.push({ questionId, answerText, score, strengths, areas_to_improve, timestamp }); // ✅ include timestamp
+  localStorage.setItem('interview_answers', JSON.stringify(answers));
 };
+
 
 /**
  * Retrieve all answers
