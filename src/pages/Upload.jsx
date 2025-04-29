@@ -49,11 +49,11 @@ const Upload = () => {
       {/* Background image */}
       <div
         className="absolute inset-0 bg-cover bg-center opacity-150"
-        style={{ backgroundImage: `url('/upload.png')` }}
+        style={{ backgroundImage: `url('/upload.jpg')` }}
       ></div>
 
       {/* Main content */}
-      <div className="relative flex flex-col items-center  p-4 bg-white bg-opacity-80 rounded-lg shadow-lg">
+      <div className="relative flex flex-col items-center  p-5 bg-white bg-opacity-40 rounded-lg shadow-lg">
         <h1 className="text-3xl font-bold mb-6 text-blue-700">
           Upload Your Resume
         </h1>
