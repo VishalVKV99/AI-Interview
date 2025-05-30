@@ -1,4 +1,6 @@
+
 export const analyzeAnswerWithOpenAI = async (answerText) => {
+
   const API_KEY = process.env.REACT_APP_OPENAI_API_KEY;
   const API_URL = process.env.REACT_APP_OPENAI_API_URL;
 

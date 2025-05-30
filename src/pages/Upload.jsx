@@ -45,7 +45,7 @@ const Upload = () => {
   };
 
   return (
-    <div className="relative flex items-center justify-center h-screen"  style={{ height: 'calc(125vh - 64px)' }}>
+    <div className="relative flex items-center justify-center h-screen" >
       {/* Background image */}
       <div
         className="absolute inset-0 bg-cover bg-center opacity-150"

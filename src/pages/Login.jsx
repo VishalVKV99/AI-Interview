@@ -18,7 +18,7 @@ const Login = () => {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      navigate('/dashboard'); // Redirect after login
+      navigate('/Upload'); // Redirect after login
     } catch (err) {
       console.error('Login Error:', err);
       setError('Invalid email or password. Please try again.');

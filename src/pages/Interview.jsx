@@ -38,7 +38,7 @@ const Interview = () => {
 
     const skillQuestions = resumeData.skills.map((skill, idx) => ({
       id: idx + 1,
-      question: `What do you uderstand by ${skill}.`,
+      question: `What do you understand by ${skill}.`,
       skill: skill,
     }));
 
