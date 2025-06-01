@@ -18,7 +18,7 @@
     "@tensorflow-models/speech-commands": "^0.5.4",
     "@tensorflow/tfjs": "^4.22.0",
     "cloudflared": "^0.7.0",
-    "firebase": "^11.8.1",
+    "firebase": "^11.4.0",
     "jspdf": "^2.5.1",
     "jspdf-autotable": "^3.5.25",
     "openai": "^4.95.1",

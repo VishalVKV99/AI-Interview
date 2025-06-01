@@ -1,22 +1,17 @@
 const mockQuestions = {
   JavaScript: [
-    "What is closure in JavaScript?",
-    "Explain event delegation in JavaScript.",
-  ],
-  Python: [
-    "What are Python decorators?",
-    "How is memory managed in Python?",
+    'What is closure in JavaScript?',
+    'Explain the difference between var, let and const.',
   ],
   React: [
-    "What are hooks in React?",
-    "Explain the virtual DOM in React.",
+    'What are React hooks?',
+    'Explain the useEffect hook.',
   ],
-  // fallback or generic
-  General: [
-    "Tell me about yourself.",
-    "What are your strengths?",
-    "Why should we hire you?",
+  Python: [
+    'What are Python decorators?',
+    'Explain the difference between lists and tuples.',
   ],
+  // Add more skills
 };
 
 export default mockQuestions;

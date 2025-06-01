@@ -1,37 +1,29 @@
 import mockQuestions from '../data/mockQuestion';
 import { getDeepSeekQuestions } from '../api/deepseekClient';
 
-
 export const generateSkillBasedQuestions = async (skills = []) => {
   const finalQuestions = [];
 
   for (let i = 0; i < skills.length; i++) {
     const skill = skills[i];
 
-    // First try static
-    const staticQs = mockQuestions[skill] || [];
-    const staticQuestion = staticQs[Math.floor(Math.random() * staticQs.length)];
+    // ✅ First try DeepSeek
+    let question = await getDeepSeekQuestions(skill);
 
-    // Try DeepSeek as fallback if static not found
-    let question = staticQuestion;
-
+    // ❌ DeepSeek failed → fallback to mock
     if (!question) {
-      const aiQuestion = await getDeepSeekQuestions(skill);
-      if (aiQuestion) {
-        question = aiQuestion;
-      }
+      const staticQs = mockQuestions[skill] || [];
+      question = staticQs[Math.floor(Math.random() * staticQs.length)] || `Describe your experience with ${skill}.`;
     }
 
-    if (question) {
-      finalQuestions.push({
-        id: i + 1,
-        question,
-        skill,
-      });
-    }
+    finalQuestions.push({
+      id: i + 1,
+      question,
+      skill,
+    });
   }
 
-  // Add intro
+  // ✅ Add intro question
   finalQuestions.unshift({
     id: 0,
     question: "Please introduce yourself.",

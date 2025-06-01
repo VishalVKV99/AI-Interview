@@ -22,7 +22,7 @@ export const generateFeedbackPDF = (answers, user, questions, interviewTime) => 
   y += 10;
 
   doc.setFontSize(14);
-  doc.text('Your performance', margin, y);
+  doc.text('Your performance', margin, y); 
   y += 8;
 
   const tableHeaders = [

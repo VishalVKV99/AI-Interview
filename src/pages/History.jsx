@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getInterviewResults } from '../services/firebaseService';
 import { generateFeedbackPDF } from '../utils/pdfGenerator';
 import { auth } from '../firebase';
@@ -43,6 +43,7 @@ const History = () => {
       </div>
     );
   }
+ 
 
   return (
     <div className="p-8 max-w-5xl mx-auto">
@@ -58,6 +59,7 @@ const History = () => {
           </tr>
         </thead>
         <tbody>
+
           {results.map((result, index) => (
             <tr key={index} className="hover:bg-gray-50">
               <td className="py-3 px-4 border-b">{index + 1}</td>
@@ -70,9 +72,17 @@ const History = () => {
               <td className="py-3 px-4 border-b text-center">
                 <button
                   onClick={() =>
-                    generateFeedbackPDF(result, result.answers || [], currentUser, [], result.interviewTime)
-
+                    generateFeedbackPDF(
+                      result.answers || [], // ✅ answers
+                      {                     // ✅ user object
+                        name: result.userName || 'Anonymous',
+                        email: result.userEmail || currentUser?.email || 'Anonymous'
+                      },
+                      result.questions || [], // ✅ questions
+                      result.interviewTime || 'N/A' // ✅ interviewTime
+                    )
                   }
+
                   className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition"
                 >
                   Download Report

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllAnswers, clearAnswers } from '../services/answerService';
 import { InterviewContext } from '../contexts/InterviewContext';

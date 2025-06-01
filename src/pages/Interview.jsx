@@ -1,10 +1,11 @@
 
-import React, { useState, useEffect, useContext, useRef } from 'react';
+import { useState, useEffect, useContext, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { InterviewContext } from '../contexts/InterviewContext';
 import { saveAnswer, getAllAnswers, clearAnswers } from '../services/answerService';
 import { analyzeAnswerWithOpenAI } from '../services/aiScoring';
 import { createInterviewSession, saveAnswerToFirestore } from '../services/firebaseService';
+ 
 
 const Interview = () => {
   const navigate = useNavigate();

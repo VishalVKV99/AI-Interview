@@ -42,6 +42,14 @@ export const analyzeAnswerWithOpenAI = async (answerText) => {
         temperature: 0.7,
       }),
     });
+    if (response.status === 429) {
+      console.error('Rate limit exceeded. Please try again later.');
+      return {
+        score: 0,
+        strengths: [],
+        areas_to_improve: ['Rate limit exceeded. Try again shortly.'],
+      };
+    }
 
     const data = await response.json();
 
