@@ -83,7 +83,6 @@ export const saveAnswerToFirestore = async (sessionId, answerObj) => {
 
 // ✅ Save interview result to user's history
 import { query, where } from 'firebase/firestore';
-
 export const saveInterviewResult = async (resultData) => {
   const user = auth.currentUser;
   if (!user) {
@@ -107,18 +106,29 @@ export const saveInterviewResult = async (resultData) => {
     }
 
     const sanitizedData = deepSanitize(resultData);
+
+    // ✅ Validate timestamp before querying
+    if (
+      !sanitizedData.timestamp ||
+      typeof sanitizedData.timestamp !== 'string' ||
+      isNaN(Date.parse(sanitizedData.timestamp))
+    ) {
+      console.error('Invalid or missing timestamp in resultData:', sanitizedData);
+      return;
+    }
+
     const historyRef = collection(db, 'users', userId, 'history');
 
-    // 👇 New: Check for similar result already existing
+    // ✅ Safe duplicate check
     const querySnapshot = await getDocs(query(
       historyRef,
-      where('timestamp', '==', sanitizedData.timestamp || ''),
-      where('interviewTime', '==', sanitizedData.interviewTime || 0)
+      where('timestamp', '==', sanitizedData.timestamp),
+      where('interviewTime', '==', sanitizedData.interviewTime)
     ));
 
     if (!querySnapshot.empty) {
       console.log('Duplicate result found, skipping save.');
-      return; // Avoid saving duplicate
+      return;
     }
 
     await addDoc(historyRef, {
@@ -131,7 +141,6 @@ export const saveInterviewResult = async (resultData) => {
     console.error('Error saving interview result:', error);
   }
 };
-
 
 // ✅ Get interview results
 export const getInterviewResults = async () => {

@@ -1,11 +1,10 @@
-import React, { createContext, useState, useEffect } from 'react';
-import { useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
+import { getDeepSeekQuestions } from '../api/deepseekClient'; // ✅ correct name
+import mockQuestion from '../data/mockQuestion'; // Optional fallback questions
 
 // Create the context
 export const InterviewContext = createContext();
 export const useInterview = () => useContext(InterviewContext);
-
-
 
 // Provider component
 export const InterviewProvider = ({ children }) => {
@@ -20,13 +19,12 @@ export const InterviewProvider = ({ children }) => {
     name: "",
     email: "",
   });
-  
 
   // Effect to auto-generate questions when resumeData updates
   useEffect(() => {
     if (!resumeData) return;
 
-    const generateQuestions = () => {
+    const generateQuestions = async () => {
       const skillsArray = resumeData.skills || [];
       const projectsArray = resumeData.projects || [];
 
@@ -36,11 +34,17 @@ export const InterviewProvider = ({ children }) => {
         skill: "Introduction",
       };
 
-      const skillQuestions = skillsArray.map((skill, index) => ({
-        id: index + 1,
-        question: `Can you explain your experience with ${skill}?`,
-        skill,
-      }));
+      // Fetch DeepSeek-based questions for each skill
+      const skillQuestions = await Promise.all(
+        skillsArray.map(async (skill, index) => {
+          const apiQuestion = await getDeepSeekQuestions(skill);
+          return {
+            id: index + 1,
+            question: apiQuestion || `Can you explain your experience with ${skill}?`,
+            skill,
+          };
+        })
+      );
 
       const projectQuestions = projectsArray.map((project, index) => ({
         id: index + 1 + skillQuestions.length,
@@ -51,9 +55,12 @@ export const InterviewProvider = ({ children }) => {
       return [introQuestion, ...skillQuestions, ...projectQuestions];
     };
 
-    const newQuestions = generateQuestions();
-    setQuestions(newQuestions);
-    setCurrentQuestionIndex(0); // reset question index when new data comes in
+    // Trigger async question generation
+    (async () => {
+      const newQuestions = await generateQuestions();
+      setQuestions(newQuestions);
+      setCurrentQuestionIndex(0); // reset question index
+    })();
   }, [resumeData]);
 
   // Reset interview data
@@ -72,10 +79,12 @@ export const InterviewProvider = ({ children }) => {
         resumeData,
         setResumeData,
         questions,
-        setQuestions, // if you ever want to directly modify questions
+        setQuestions,
         currentQuestionIndex,
         setCurrentQuestionIndex,
-        resetInterview,user, setUser,
+        resetInterview,
+        user,
+        setUser,
       }}
     >
       {children}

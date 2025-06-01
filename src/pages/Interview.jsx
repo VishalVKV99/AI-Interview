@@ -9,13 +9,18 @@ import { createInterviewSession, saveAnswerToFirestore } from '../services/fireb
 const Interview = () => {
   const navigate = useNavigate();
   const { resumeData } = useContext(InterviewContext);
+  const [showStartModal, setShowStartModal] = useState(true);
 
-  const [questions, setQuestions] = useState([]);
+  const [questions, setQuestions] = useState([]); 
+  const [tempName, setTempName] = useState('');
+  const [tempEmail, setTempEmail] = useState('');
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answer, setAnswer] = useState('');
   const [completedSkills, setCompletedSkills] = useState([]);
   const [isInterviewStarted, setIsInterviewStarted] = useState(false);
   const [timer, setTimer] = useState(600); // 10 min
+  const [isLoading, setIsLoading] = useState(false);
+
 
   const timerRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -66,32 +71,27 @@ const Interview = () => {
   const { user, setUser } = useContext(InterviewContext);
 
   const handleStartInterview = async () => {
-    if (!isInterviewStarted) {
-      const userName = prompt("Enter your name:");
-      const userEmail = prompt("Enter your email:");
-
-      if (!userName || !userEmail) {
-        alert("Name and email are required to start the interview.");
-        return; 
-      }
-
-      setUser({ name: userName, email: userEmail });
-
-      // Proceed with interview session creation
-      setIsInterviewStarted(true);
-      setTimer(600);
-
-      try {
-        const sessionId = await createInterviewSession();
-        setInterviewSessionId(sessionId);
-        console.log('Interview session started:', sessionId);
-      } catch (error) {
-        console.error('Failed to create interview session:', error);
-      }
-
-      startSpeechRecognition();
+    if (!tempName || !tempEmail) {
+      alert("Please enter both name and email.");
+      return;
     }
+
+    setUser({ name: tempName, email: tempEmail });
+    setIsInterviewStarted(true);
+    setTimer(600);
+    setShowStartModal(false);
+
+    try {
+      const sessionId = await createInterviewSession();
+      setInterviewSessionId(sessionId);
+      console.log('Interview session started:', sessionId);
+    } catch (error) {
+      console.error('Failed to create interview session:', error);
+    }
+
+    startSpeechRecognition();
   };
+
 
 
   // ✅ Start and persist speech recognition
@@ -201,7 +201,11 @@ const Interview = () => {
       return;
     }
 
+    if (isLoading) return;
+
+    setIsLoading(true); // ✅ disable button
     await saveCurrentAnswer();
+    setIsLoading(false); // ✅ re-enable
 
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
@@ -232,79 +236,107 @@ const Interview = () => {
       clearAnswers();
     }, 2000);
   };
-
   return (
+    <>
+      {showStartModal && (
+        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md mx-auto text-center">
+            <h2 className="text-2xl font-bold mb-6 text-gray-800">Start Your Interview</h2>
 
-    <div className="flex min-h-screen bg-white">
-      <div className="w-3/4 p-8">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-bold">AI Interview In Progress</h2>
-          <span className="text-gray-500 text-lg">{formatTime(timer)}</span>
-        </div>
-
-        {currentQuestion ? (
-          <>
-            <h3 className="text-lg font-semibold mb-4">{currentQuestion.question}</h3>
-
-            <textarea
-              className="w-full p-3 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
-              rows="6"
-              placeholder="Your answer will appear here..."
-              value={answer}
-              readOnly
+            <input
+              type="text"
+              placeholder="Enter your name"
+              className="w-full mb-4 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={tempName}
+              onChange={(e) => setTempName(e.target.value)}
+            />
+            <input
+              type="email"
+              placeholder="Enter your email"
+              className="w-full mb-6 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value={tempEmail}
+              onChange={(e) => setTempEmail(e.target.value)}
             />
 
-            <div className="flex gap-4">
-              <button
-                onClick={handleStartInterview}
-                disabled={isInterviewStarted}
-                className={`px-6 py-3 rounded text-white transition-all ${isInterviewStarted ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'
+            <button
+              onClick={handleStartInterview}
+              className="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-3 rounded-md transition-all w-full"
+            >
+              Start Interview
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Interview layout */}
+      <div className="flex min-h-screen bg-white">
+        <div className="w-3/4 p-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold">AI Interview In Progress</h2>
+            <span className="text-gray-500 text-lg">{formatTime(timer)}</span>
+          </div>
+
+          {currentQuestion ? (
+            <>
+              <h3 className="text-lg font-semibold mb-4">{currentQuestion.question}</h3>
+              <textarea
+                className="w-full p-3 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                rows="6"
+                placeholder="Your answer will appear here..."
+                value={answer}
+                readOnly
+              />
+
+              <div className="flex gap-4">
+                <button
+                  onClick={handleStartInterview}
+                  disabled={isInterviewStarted}
+                  className={`px-6 py-3 rounded text-white transition-all ${isInterviewStarted ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'}`}
+                >
+                  {isInterviewStarted ? 'Interview Running...' : 'Start Interview'}
+                </button>
+
+                <button
+                  onClick={handleNextQuestion}
+                  disabled={!isInterviewStarted}
+                  className="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600 transition-all"
+                >
+                  Next Question
+                </button>
+              </div>
+            </>
+          ) : (
+            <div>Loading questions...</div>
+          )}
+        </div>
+
+        <div className="w-1/4 bg-gray-100 p-8 border-l border-gray-300">
+          <h3 className="text-lg font-semibold mb-4">Skills Progress</h3>
+          <ul className="space-y-2">
+            {resumeData?.skills?.map((skill, index) => (
+              <li
+                key={index}
+                className={`p-2 rounded flex justify-between items-center ${completedSkills.includes(skill)
+                    ? 'bg-green-300 text-green-800'
+                    : 'bg-gray-300 text-gray-700'
                   }`}
               >
-                {isInterviewStarted ? 'Interview Running...' : 'Start Interview'}
-              </button>
+                <span>{skill}</span>
+                {completedSkills.includes(skill) && <span>✅</span>}
+              </li>
+            ))}
+          </ul>
 
-              <button
-                onClick={handleNextQuestion}
-                disabled={!isInterviewStarted}
-                className="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600 transition-all"
-              >
-                Next Question
-              </button>
-            </div>
-          </>
-        ) : (
-          <div>Loading questions...</div>
-        )}
+          <button
+            onClick={handleEndInterview}
+            disabled={!isInterviewStarted}
+            className="mt-8 w-full bg-red-500 text-white px-6 py-3 rounded hover:bg-red-600 transition-all"
+          >
+            Submit Answers / End Interview
+          </button>
+        </div>
       </div>
-
-      <div className="w-1/4 bg-gray-100 p-8 border-l border-gray-300">
-        <h3 className="text-lg font-semibold mb-4">Skills Progress</h3>
-        <ul className="space-y-2">
-          {resumeData?.skills?.map((skill, index) => (
-            <li
-              key={index}
-              className={`p-2 rounded flex justify-between items-center ${completedSkills.includes(skill)
-                  ? 'bg-green-300 text-green-800'
-                  : 'bg-gray-300 text-gray-700'
-                }`}
-            >
-              <span>{skill}</span>
-              {completedSkills.includes(skill) && <span>✅</span>}
-            </li>
-          ))}
-        </ul>
-
-        <button
-          onClick={handleEndInterview}
-          disabled={!isInterviewStarted}
-          className="mt-8 w-full bg-red-500 text-white px-6 py-3 rounded hover:bg-red-600 transition-all"
-        >
-          Submit Answers / End Interview
-        </button>
-      </div>
-    </div>
+    </>
   );
 };
-
 export default Interview;

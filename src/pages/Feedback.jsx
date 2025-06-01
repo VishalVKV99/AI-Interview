@@ -127,7 +127,7 @@ const Feedback = () => {
               return;
             }
 
-            generateFeedbackPDF(feedback, answers, user, questions, feedback.interviewTime);
+            generateFeedbackPDF(answers, user, questions, feedback.interviewTime);
 
           }}
           className="bg-green-500 text-white px-6 py-2 rounded hover:bg-green-600 transition"

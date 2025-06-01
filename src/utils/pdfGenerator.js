@@ -2,7 +2,7 @@
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 
-export const generateFeedbackPDF = (feedback, answers, user, questions, interviewTime) => {
+export const generateFeedbackPDF = (answers, user, questions, interviewTime) => {
   const doc = new jsPDF();
   const margin = 10;
   let y = margin;
@@ -62,11 +62,7 @@ export const generateFeedbackPDF = (feedback, answers, user, questions, intervie
     alternateRowStyles: {
       fillColor: [255, 255, 255],
     },
-    columnStyles: {
-      0: { cellWidth: 10 },
-      1: { cellWidth: 60 },
-      2: { cellWidth: 120 },
-    },
+    
     theme: 'striped',
     didDrawPage: function (data) {
       const pageHeight = doc.internal.pageSize.height;
