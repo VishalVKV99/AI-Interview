@@ -1,5 +1,5 @@
 const mockQuestions = {
- "React": [
+  "React": [
     "What are React hooks?",
     "Explain the useEffect hook.",
     "What is JSX?",
@@ -9,7 +9,18 @@ const mockQuestions = {
     "What is React Router?",
     "What are keys in React and why are they important?",
     "What is useState in React?",
-    "How does React handle forms?"
+    "How does React handle forms?",
+    "What is difference betweenelement and component in React?",
+    "What is the Virtual DOM?",
+    "Explain the difference between functional components and class components.",
+    "What is useState() in React?",
+    "What is Strict Mode in React?",
+    "What is prop drilling?",
+    "What are higher order components in React?",
+    "What is the purpose of useContext hook?",
+    "What is the use of useReducer hook?",
+    "What is the purpose of useMemo and useCallback hooks?",
+
   ],
   "Node.js": [
     "What is Node.js?",

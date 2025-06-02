@@ -26,9 +26,9 @@ export const parseResume = async (file) => {
 
         // Extract skills (basic example)
         const skillKeywords = ['React', 'Node.js', 'JavaScript', 'Python', 
-          'Machine Learning', 'AI', 'CSS', 'HTML', 'MongoDB', 'SQL', 'Java', 'Core Java', 'Express.js',
-           'Versal', 'Next.js','TypeScript', 'C++', 'C#', 'PHP', 'Ruby', 'Go', 'Swift', 'Kotlin', 'Django',
-           'REST API', 'Docker','Agile', 'Scrum','DevOps', 'CI/CD', 'Git', 'Version Control', 'Microservices', 
+          'Machine Learning', 'CSS', 'HTML', 'MongoDB', 'SQL', 'Java', 'Core Java', 'Express.js',
+           'Versal', 'Next.js','TypeScript', 'C++', 'C#', 'PHP', 'Ruby', 'Swift', 'Kotlin', 'Django',
+           'REST API', 'Docker','DevOps', 'CI/CD', 'Git', 'Version Control', 'Microservices', 
            'Cloud Computing', 'Data Structures', 'Algorithms','Postman', 'GraphQL', 'Redux','Angular', 'Tailwind CSS',];
         const skills = skillKeywords.filter(skill => fullText.toLowerCase().includes(skill.toLowerCase()));
 

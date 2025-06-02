@@ -1,66 +1,69 @@
-
-import { useState, useEffect, useContext, useRef } from 'react';
+import { useState, useEffect, useRef, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { InterviewContext } from '../contexts/InterviewContext';
-import { saveAnswer, getAllAnswers, clearAnswers } from '../services/answerService';
+import {
+  saveAnswer,
+  getAllAnswers,
+  clearAnswers,
+} from '../services/answerService';
+import {
+  createInterviewSession,
+  saveAnswerToFirestore,
+} from '../services/firebaseService';
 import { analyzeAnswerWithOpenAI } from '../services/aiScoring';
-import { createInterviewSession, saveAnswerToFirestore } from '../services/firebaseService';
- import { getDeepSeekQuestions } from '../services/deepseekClient';
+import { getDeepSeekQuestions } from '../services/deepseekClient';
 
 const Interview = () => {
   const navigate = useNavigate();
-  const { resumeData } = useContext(InterviewContext);
-  const [showStartModal, setShowStartModal] = useState(true);
+  const {
+    resumeData,
+    user,
+    setUser,
+  } = useContext(InterviewContext);
 
-  const [questions, setQuestions] = useState([]); 
+  const [showStartModal, setShowStartModal] = useState(true);
   const [tempName, setTempName] = useState('');
   const [tempEmail, setTempEmail] = useState('');
+  const [questions, setQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answer, setAnswer] = useState('');
-  const [completedSkills, setCompletedSkills] = useState([]);
   const [isInterviewStarted, setIsInterviewStarted] = useState(false);
-  const [timer, setTimer] = useState(600); // 10 min
+  const [completedSkills, setCompletedSkills] = useState([]);
+  const [interviewSessionId, setInterviewSessionId] = useState(null);
+  const [timer, setTimer] = useState(600);
   const [isLoading, setIsLoading] = useState(false);
-
 
   const timerRef = useRef(null);
   const recognitionRef = useRef(null);
-  const [interviewSessionId, setInterviewSessionId] = useState(null);
 
   const currentQuestion = questions[currentQuestionIndex];
 
-  
-useEffect(() => {
-  const loadQuestions = async () => {
-    if (!resumeData?.skills || !resumeData?.projects) {
-      console.warn('Resume data is missing.');
-      return;
-    }
+  // Load questions from resume
+  useEffect(() => {
+    const loadQuestions = async () => {
+      if (!resumeData?.skills) return;
 
-    const introQuestion = {
-      id: 0,
-      question: 'Please introduce yourself.',
-      skill: 'Introduction',
+      const intro = {
+        id: 0,
+        question: 'Please introduce yourself.',
+        skill: 'Introduction',
+      };
+
+      const skillsQs = await Promise.all(
+        resumeData.skills.map(async (skill, i) => ({
+          id: i + 1,
+          question: await getDeepSeekQuestions(skill) || `What do you know about ${skill}?`,
+          skill,
+        }))
+      );
+
+      setQuestions([intro, ...skillsQs]);
     };
 
-    const skillQuestions = await Promise.all(
-      resumeData.skills.map(async (skill, idx) => {
-        const questionText = await getDeepSeekQuestions(skill);
-        return {
-          id: idx + 1,
-          question: questionText || `What do you know about ${skill}?`,
-          skill: skill,
-        };
-      })
-    );
+    loadQuestions();
+  }, [resumeData]);
 
-    setQuestions([introQuestion, ...skillQuestions]);
-  };
-
-  loadQuestions();
-}, [resumeData]);
-
-  // ✅ Timer countdown logic
+  // Timer countdown
   useEffect(() => {
     if (!isInterviewStarted || timer <= 0) return;
 
@@ -74,36 +77,7 @@ useEffect(() => {
     return () => clearTimeout(timerRef.current);
   }, [isInterviewStarted, timer]);
 
-  const formatTime = (seconds) => `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
-
-  // ✅ Start interview session + mic
-  const { user, setUser } = useContext(InterviewContext);
-
-  const handleStartInterview = async () => {
-    if (!tempName || !tempEmail) {
-      alert("Please enter both name and email.");
-      return;
-    }
-
-    setUser({ name: tempName, email: tempEmail });
-    setIsInterviewStarted(true);
-    setTimer(600);
-    setShowStartModal(false);
-
-    try {
-      const sessionId = await createInterviewSession();
-      setInterviewSessionId(sessionId);
-      console.log('Interview session started:', sessionId);
-    } catch (error) {
-      console.error('Failed to create interview session:', error);
-    }
-
-    startSpeechRecognition();
-  };
-
-
-
-  // ✅ Start and persist speech recognition
+  // Speech Recognition
   const startSpeechRecognition = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
@@ -124,97 +98,79 @@ useEffect(() => {
           finalTranscript += transcript + ' ';
         }
       }
-
       if (finalTranscript) {
         setAnswer(prev => `${prev} ${finalTranscript}`.trim());
       }
     };
 
-    recognition.onerror = (event) => {
-      console.error('Speech recognition error:', event.error);
-    };
-
     recognition.onend = () => {
-      if (isInterviewStarted) {
-        console.log('Restarting recognition...');
-        recognition.start();
-      }
+      if (isInterviewStarted) recognition.start();
     };
 
     recognition.start();
     recognitionRef.current = recognition;
   };
 
-  // ✅ Save answer with feedback + mark skill
-  const saveCurrentAnswer = async () => {
-    if (!interviewSessionId) {
-      console.error('Interview session not initialized!');
+  const handleStartInterview = async () => {
+    if (!tempName || !tempEmail) {
+      alert('Please enter both name and email.');
       return;
     }
 
-    if (!currentQuestion || currentQuestion.id === undefined) {
-      console.error('Invalid currentQuestion:', currentQuestion);
-      return;
-    }
+    setUser({ name: tempName, email: tempEmail });
+    setIsInterviewStarted(true);
+    setTimer(600);
+    setShowStartModal(false);
 
     try {
-      const aiFeedback = await analyzeAnswerWithOpenAI(answer);
+      const sessionId = await createInterviewSession();
+      setInterviewSessionId(sessionId);
+    } catch (err) {
+      console.error('Error starting session:', err);
+    }
+
+    startSpeechRecognition();
+  };
+
+  const saveCurrentAnswer = async () => {
+    if (!interviewSessionId || !currentQuestion) return;
+
+    try {
+      const feedback = await analyzeAnswerWithOpenAI(answer);
 
       const answerObj = {
         questionId: currentQuestion.id,
         questionText: currentQuestion.question,
         answerText: answer || '',
-        score: aiFeedback?.score ?? 0,
-        strengths: aiFeedback?.strengths ?? [],
-        areas_to_improve: aiFeedback?.areas_to_improve ?? [],
-        timestamp: new Date().toISOString()
+        score: feedback?.score ?? 0,
+        strengths: feedback?.strengths ?? [],
+        areas_to_improve: feedback?.areas_to_improve ?? [],
+        timestamp: new Date().toISOString(),
       };
 
-
-      console.log('Saving Answer Object:', answerObj);
-
-
-      // ✅ Save locally
-      saveAnswer(
-        currentQuestion.id,
-        answer,
-        answerObj.timestamp // ✅ pass timestamp
-      );
-
-      // ✅ Save to Firestore (fixed rules)
+      saveAnswer(currentQuestion.id, answer, answerObj.timestamp);
       await saveAnswerToFirestore(interviewSessionId, answerObj);
 
-      console.log('Answer saved to Firestore:', answerObj);
-
-      // ✅ Mark completed skill NOW!
-      const skill = currentQuestion.skill;
       if (
-        skill !== 'Introduction' &&
-        skill !== 'Projects' &&
-        !completedSkills.includes(skill)
+        currentQuestion.skill !== 'Introduction' &&
+        !completedSkills.includes(currentQuestion.skill)
       ) {
-        setCompletedSkills(prevSkills => [...prevSkills, skill]);
-        console.log(`Skill marked: ${skill}`);
+        setCompletedSkills(prev => [...prev, currentQuestion.skill]);
       }
-
-    } catch (error) {
-      console.error('Error saving answer:', error);
+    } catch (err) {
+      console.error('Error saving answer:', err);
     }
   };
 
-
-  // ✅ Handle next question click
-  const handleNextQuestion = async () => {
+  const handleNext = async () => {
     if (!answer.trim()) {
-      alert('Please provide an answer before proceeding.');
+      alert('Answer is required before moving on.');
       return;
     }
 
-    if (isLoading) return;
-
-    setIsLoading(true); // ✅ disable button
+    setIsLoading(true);
     await saveCurrentAnswer();
-    setIsLoading(false); // ✅ re-enable
+    setIsLoading(false);
 
     if (currentQuestionIndex < questions.length - 1) {
       setCurrentQuestionIndex(prev => prev + 1);
@@ -225,51 +181,63 @@ useEffect(() => {
     }
   };
 
-  // ✅ End interview logic (manual or timeout)
+  const handleSkip = () => {
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(prev => prev + 1);
+      setAnswer('');
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(prev => prev - 1);
+      setAnswer('');
+    }
+  };
+
   const handleEndInterview = () => {
     clearTimeout(timerRef.current);
-    if (recognitionRef.current) recognitionRef.current.stop();
+    recognitionRef.current?.stop();
 
     const answers = getAllAnswers();
-
-    if (!answers.length) {
-      alert('No answers to submit!');
-      return;
-    }
-
-    console.log('Submitting answers:', answers);
+    if (!answers.length) return alert('No answers found.');
 
     navigate('/feedback', { state: { answers } });
-
-    setTimeout(() => {
-      clearAnswers();
-    }, 2000);
+    setTimeout(clearAnswers, 2000);
   };
+
+  const formatTime = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+
   return (
     <>
+      {/* Start Modal */}
       {showStartModal && (
         <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
-          <div className="bg-white rounded-xl shadow-lg p-8 w-full max-w-md mx-auto text-center">
+          <div className="relative bg-white rounded-xl shadow-lg p-8 w-full max-w-md mx-auto text-center">
+            <button
+              className="absolute top-2 right-3 text-xl text-gray-600 hover:text-red-600"
+              onClick={() => setShowStartModal(false)}
+            >
+              ✖
+            </button>
             <h2 className="text-2xl font-bold mb-6 text-gray-800">Start Your Interview</h2>
-
             <input
               type="text"
               placeholder="Enter your name"
-              className="w-full mb-4 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={tempName}
               onChange={(e) => setTempName(e.target.value)}
+              className="w-full mb-4 px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-400"
             />
             <input
               type="email"
               placeholder="Enter your email"
-              className="w-full mb-6 px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
               value={tempEmail}
               onChange={(e) => setTempEmail(e.target.value)}
+              className="w-full mb-6 px-4 py-2 border rounded-md focus:ring-2 focus:ring-blue-400"
             />
-
             <button
               onClick={handleStartInterview}
-              className="bg-green-500 hover:bg-green-600 text-white font-semibold px-6 py-3 rounded-md transition-all w-full"
+              className="bg-green-500 text-white font-semibold px-6 py-3 rounded-md w-full hover:bg-green-600"
             >
               Start Interview
             </button>
@@ -277,59 +245,41 @@ useEffect(() => {
         </div>
       )}
 
-      {/* Interview layout */}
-      <div className="flex min-h-screen bg-white">
-        <div className="w-3/4 p-8">
+      {/* Interview UI */}
+      <div className="flex min-h-screen">
+        <main className="w-3/4 p-8">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">AI Interview In Progress</h2>
-            <span className="text-gray-500 text-lg">{formatTime(timer)}</span>
+            <h2 className="text-2xl font-bold">AI Interview</h2>
+            <span className="text-gray-500">{formatTime(timer)}</span>
           </div>
 
           {currentQuestion ? (
             <>
               <h3 className="text-lg font-semibold mb-4">{currentQuestion.question}</h3>
               <textarea
-                className="w-full p-3 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                className="w-full p-3 border rounded mb-4"
                 rows="6"
-                placeholder="Your answer will appear here..."
                 value={answer}
                 readOnly
+                placeholder="Your answer will appear here..."
               />
 
               <div className="flex gap-4">
-                <button
-                  onClick={handleStartInterview}
-                  disabled={isInterviewStarted}
-                  className={`px-6 py-3 rounded text-white transition-all ${isInterviewStarted ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-500 hover:bg-green-600'}`}
-                >
-                  {isInterviewStarted ? 'Interview Running...' : 'Start Interview'}
-                </button>
-
-                <button
-                  onClick={handleNextQuestion}
-                  disabled={!isInterviewStarted}
-                  className="bg-blue-500 text-white px-6 py-3 rounded hover:bg-blue-600 transition-all"
-                >
-                  Next Question
-                </button>
+                <button onClick={handlePrevious} className="bg-gray-400 text-white px-4 py-2 rounded">Previous</button>
+                <button onClick={handleSkip} className="bg-yellow-500 text-white px-4 py-2 rounded">Skip</button>
+                <button onClick={handleNext} disabled={isLoading} className="bg-blue-500 text-white px-4 py-2 rounded">Save & Next</button>
               </div>
             </>
           ) : (
-            <div>Loading questions...</div>
+            <p>Loading questions...</p>
           )}
-        </div>
+        </main>
 
-        <div className="w-1/4 bg-gray-100 p-8 border-l border-gray-300">
-          <h3 className="text-lg font-semibold mb-4">Skills Progress</h3>
+        <aside className="w-1/4 bg-gray-100 p-6">
+          <h3 className="text-lg font-bold mb-4">Skills Progress</h3>
           <ul className="space-y-2">
-            {resumeData?.skills?.map((skill, index) => (
-              <li
-                key={index}
-                className={`p-2 rounded flex justify-between items-center ${completedSkills.includes(skill)
-                    ? 'bg-green-300 text-green-800'
-                    : 'bg-gray-300 text-gray-700'
-                  }`}
-              >
+            {resumeData?.skills?.map((skill, i) => (
+              <li key={i} className={`p-2 rounded flex justify-between ${completedSkills.includes(skill) ? 'bg-green-300 text-green-800' : 'bg-gray-300'}`}>
                 <span>{skill}</span>
                 {completedSkills.includes(skill) && <span>✅</span>}
               </li>
@@ -338,14 +288,14 @@ useEffect(() => {
 
           <button
             onClick={handleEndInterview}
-            disabled={!isInterviewStarted}
-            className="mt-8 w-full bg-red-500 text-white px-6 py-3 rounded hover:bg-red-600 transition-all"
+            className="mt-8 w-full bg-red-500 text-white py-2 rounded hover:bg-red-600"
           >
-            Submit Answers / End Interview
+            End Interview / Submit
           </button>
-        </div>
+        </aside>
       </div>
     </>
   );
 };
+
 export default Interview;

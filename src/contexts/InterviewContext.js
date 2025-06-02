@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { getDeepSeekQuestions } from '../services/deepseekClient'; // ✅ correct name
-import mockQuestion from '../data/mockInterview'; 
+import { getDeepSeekQuestions } from '../services/deepseekClient';
+import mockQuestion from '../data/mockInterview';
 
 // Create the context
 export const InterviewContext = createContext();
@@ -20,7 +20,7 @@ export const InterviewProvider = ({ children }) => {
     email: "",
   });
 
-  // Effect to auto-generate questions when resumeData updates
+  // Auto-generate questions when resumeData updates
   useEffect(() => {
     if (!resumeData) return;
 
@@ -34,7 +34,6 @@ export const InterviewProvider = ({ children }) => {
         skill: "Introduction",
       };
 
-      // Fetch DeepSeek-based questions for each skill
       const skillQuestions = await Promise.all(
         skillsArray.map(async (skill, index) => {
           const apiQuestion = await getDeepSeekQuestions(skill);
@@ -59,7 +58,7 @@ export const InterviewProvider = ({ children }) => {
     (async () => {
       const newQuestions = await generateQuestions();
       setQuestions(newQuestions);
-      setCurrentQuestionIndex(0); // reset question index
+      setCurrentQuestionIndex(0);
     })();
   }, [resumeData]);
 

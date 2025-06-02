@@ -6,7 +6,7 @@ const LandingPage = () => {
     <div
       className="min-h-screen bg-cover bg-center flex flex-col justify-center items-center text-white relative"
       style={{
-        backgroundImage: `url('/home.png')`, // ✅ Assuming it's in public/home.jpg
+        backgroundImage: `url('/home.png')`, 
         backgroundColor: '#1a1a1a', // fallback brownish if image fails
       }}
     >

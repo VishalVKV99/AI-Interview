@@ -5,7 +5,7 @@ export default function Home() {
     <div
       className="min-h-screen bg-cover bg-center flex flex-col justify-center items-center text-white"
       style={{
-        backgroundImage: `url('/home.png')`, // ✅ from public folder
+        backgroundImage: `url('/home.png')`, 
       }}
     >
       <div className="bg-black bg-opacity-50 p-8 rounded-lg text-center shadow-lg">
