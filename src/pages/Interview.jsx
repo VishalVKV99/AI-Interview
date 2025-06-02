@@ -5,7 +5,7 @@ import { InterviewContext } from '../contexts/InterviewContext';
 import { saveAnswer, getAllAnswers, clearAnswers } from '../services/answerService';
 import { analyzeAnswerWithOpenAI } from '../services/aiScoring';
 import { createInterviewSession, saveAnswerToFirestore } from '../services/firebaseService';
- 
+ import { getDeepSeekQuestions } from '../services/deepseekClient';
 
 const Interview = () => {
   const navigate = useNavigate();
@@ -29,8 +29,9 @@ const Interview = () => {
 
   const currentQuestion = questions[currentQuestionIndex];
 
-  // ✅ Load questions dynamically
-  useEffect(() => {
+  
+useEffect(() => {
+  const loadQuestions = async () => {
     if (!resumeData?.skills || !resumeData?.projects) {
       console.warn('Resume data is missing.');
       return;
@@ -42,15 +43,22 @@ const Interview = () => {
       skill: 'Introduction',
     };
 
-    const skillQuestions = resumeData.skills.map((skill, idx) => ({
-      id: idx + 1,
-      question: `What do you understand by ${skill}.`,
-      skill: skill,
-    }));
-
+    const skillQuestions = await Promise.all(
+      resumeData.skills.map(async (skill, idx) => {
+        const questionText = await getDeepSeekQuestions(skill);
+        return {
+          id: idx + 1,
+          question: questionText || `What do you know about ${skill}?`,
+          skill: skill,
+        };
+      })
+    );
 
     setQuestions([introQuestion, ...skillQuestions]);
-  }, [resumeData]);
+  };
+
+  loadQuestions();
+}, [resumeData]);
 
   // ✅ Timer countdown logic
   useEffect(() => {

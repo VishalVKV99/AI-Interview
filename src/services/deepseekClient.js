@@ -1,9 +1,11 @@
+import mockQuestions from '../data/mockInterview';
+
 const apiKey = process.env.VITE_DEEPSEEK_API_KEY;
 
 export const getDeepSeekQuestions = async (skill) => {
   if (!apiKey) {
-    console.warn("DeepSeek API key not provided.");
-    return null;
+    console.warn("DeepSeek API key not provided. Using offline mock questions.");
+    return getOfflineQuestion(skill);
   }
 
   try {
@@ -27,14 +29,21 @@ export const getDeepSeekQuestions = async (skill) => {
 
     const data = await response.json();
 
-    if (!response.ok) {
-      console.error('DeepSeek error:', data);
-      return null;
+    if (!response.ok || !data.choices?.[0]?.message?.content) {
+      console.error('DeepSeek API failed. Using offline mock question.');
+      return getOfflineQuestion(skill);
     }
 
-    return data.choices?.[0]?.message?.content?.trim() || null;
+    return data.choices[0].message.content.trim();
   } catch (err) {
     console.error('DeepSeek fetch error:', err);
-    return null;
+    return getOfflineQuestion(skill);
   }
+};
+
+const getOfflineQuestion = (skill) => {
+  const skillSet = mockQuestions[skill];
+  if (!skillSet || skillSet.length === 0) return `What do you know about ${skill}?`;
+  const randomIndex = Math.floor(Math.random() * skillSet.length);
+  return skillSet[randomIndex];
 };

@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { getDeepSeekQuestions } from '../api/deepseekClient'; // ✅ correct name
-import mockQuestion from '../data/mockQuestion'; // Optional fallback questions
+import { getDeepSeekQuestions } from '../services/deepseekClient'; // ✅ correct name
+import mockQuestion from '../data/mockInterview'; 
 
 // Create the context
 export const InterviewContext = createContext();

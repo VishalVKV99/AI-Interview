@@ -25,7 +25,11 @@ export const parseResume = async (file) => {
         console.log('Raw Resume Text:', fullText);
 
         // Extract skills (basic example)
-        const skillKeywords = ['React', 'Node.js', 'JavaScript', 'Python', 'Machine Learning', 'AI', 'CSS', 'HTML', 'MongoDB', 'SQL', 'Java', 'Core Java', 'Express.js', ];
+        const skillKeywords = ['React', 'Node.js', 'JavaScript', 'Python', 
+          'Machine Learning', 'AI', 'CSS', 'HTML', 'MongoDB', 'SQL', 'Java', 'Core Java', 'Express.js',
+           'Versal', 'Next.js','TypeScript', 'C++', 'C#', 'PHP', 'Ruby', 'Go', 'Swift', 'Kotlin', 'Django',
+           'REST API', 'Docker','Agile', 'Scrum','DevOps', 'CI/CD', 'Git', 'Version Control', 'Microservices', 
+           'Cloud Computing', 'Data Structures', 'Algorithms','Postman', 'GraphQL', 'Redux','Angular', 'Tailwind CSS',];
         const skills = skillKeywords.filter(skill => fullText.toLowerCase().includes(skill.toLowerCase()));
 
         // Extract project titles (basic example)
