@@ -12,6 +12,8 @@ import Feedback from './pages/Feedback';
 import Signup from './pages/Signup';
 import Login from './pages/Login';
 import History from './pages/History';
+import Footer from './layout/Footer';
+
 
 import { InterviewProvider } from './contexts/InterviewContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -46,6 +48,7 @@ const App = () => {
               <Route path="/" element={<LandingPage />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/footer" element={<Footer />} />
 
               {/* Protected Routes */}
               <Route path="/home" element={<PrivateRoute><Home /></PrivateRoute>} />
@@ -55,7 +58,6 @@ const App = () => {
               {/* <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} /> */}
               <Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
               {/* <Route path="/dashboard" element={<PrivateRoute><AdminRoute> <Dashboard /></AdminRoute></PrivateRoute>} /> */}
-
 
               {/* Fallback route */}
               <Route path="*" element={<Navigate to="/" />} />
