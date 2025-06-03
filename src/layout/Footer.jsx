@@ -3,12 +3,12 @@ import { FaFacebookF, FaXTwitter, FaInstagram, FaLinkedinIn, FaRobot } from "rea
 
 const Footer = () => {
   return (
-    <footer className="bg-gradient-to-br from-blue-100 to-blue-50 pt-20 pb-12 mt-16 text-center">
+    <footer className="bg-gradient-to-br bg-blue-100 pt-20 pb-12 mt-0.5 text-center">
       <div className="container mx-auto px-6 md:px-12">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-16 mb-16 items-center justify-center">
           {/* Logo and about */}
-          <div className="col-span-1 text-center">
-            <div className="flex items-center justify-center gap-2 mb-4">
+          <div className="col-span-1  text-center">
+            <div className="flex items-center  justify-center gap-2 mb-4">
               <FaRobot className="text-blue-500 h-8 w-8" />
               <span className="text-2xl font-bold">AI Interview</span>
             </div>
