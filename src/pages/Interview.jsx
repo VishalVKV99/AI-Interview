@@ -140,12 +140,13 @@ const Interview = () => {
 
       const answerObj = {
         questionId: currentQuestion.id,
-        questionText: currentQuestion.question,
+        questionText: currentQuestion.question, // ✅ Save full question here
         answerText: answer || '',
         score: feedback?.score ?? 0,
         strengths: feedback?.strengths ?? [],
         areas_to_improve: feedback?.areas_to_improve ?? [],
         timestamp: new Date().toISOString(),
+
       };
 
       saveAnswer(currentQuestion.id, answer, answerObj.timestamp);

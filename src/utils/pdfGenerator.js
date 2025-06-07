@@ -32,7 +32,8 @@ export const generateFeedbackPDF = (answers, user, questions, interviewTime) => 
   ];
 
   const tableData = answers.map((ans, idx) => {
-    const questionText = questions.find(q => q.id === ans.questionId)?.question || `Question ID: ${ans.questionId}`;
+    const questionText = ans.questionText || questions.find(q => q.id === ans.questionId)?.question || 'Question not found';
+
     return {
       index: idx + 1,
       question: questionText,
