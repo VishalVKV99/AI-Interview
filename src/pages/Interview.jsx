@@ -140,7 +140,7 @@ const Interview = () => {
 
       const answerObj = {
         questionId: currentQuestion.id,
-        questionText: currentQuestion.question, // ✅ Save full question here
+        questionText: currentQuestion.question,
         answerText: answer || '',
         score: feedback?.score ?? 0,
         strengths: feedback?.strengths ?? [],
@@ -203,7 +203,12 @@ const Interview = () => {
     const answers = getAllAnswers();
     if (!answers.length) return alert('No answers found.');
 
-    navigate('/feedback', { state: { answers } });
+    navigate('/feedback', {
+      state: {
+        answers: getAllAnswers(),
+        questions: questions 
+      }
+    });
     setTimeout(clearAnswers, 2000);
   };
 

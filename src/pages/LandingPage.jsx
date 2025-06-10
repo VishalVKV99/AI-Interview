@@ -14,18 +14,18 @@ import Button from '@mui/material/Button';
 const AboutSection = () => {
   return (
     <>  
-    <section id="about" className="container mx-auto px-4 py-12 bg-blue-100 about-section">
+    <section id="about" className=" bg-blue-100 about-section pt-6">
       <div className="max-w-6xl mx-auto">
         
-        <div className="text-center mb-12">
+        <div className="text-center mb-12 pt-12 ">
            <h1 className="text-5xl font-serif mb-6">AI-powered Interview preparation,Where AI meets ambition - AI Interview </h1>
-        <p className="text-lg max-w-2xl mx-auto mb-8 leading-relaxed">
+        <p className="text-lg max-w-2xl mx-auto mb-8 leading-relaxed pt-6">
           Get ready for your dream job with AI-powered mock interviews! Upload your resume,
           practice answering dynamic, personalized questions, and receive instant feedback to
           improve your skills and confidence.
         </p>
 
-          <div className="inline-block bg-blue-100 px-3 py-1 rounded-full mb-3">
+          <div className="inline-block bg-blue-200 px-3 py-1 rounded-full mb-3 "> 
             <p className="text-blue-600 font-medium text-sm">Our Features</p>
           </div>
           <h2 className="text-4xl font-bold text-gray-900 mb-6">AI-Powered Interview Preparation</h2>
