@@ -31,7 +31,7 @@ const History = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <p className="text-lg font-semibold">Loading history...</p>
+        <p className="text-lg font-semibold">Loading history.....</p>
       </div>
     );
   }
@@ -55,7 +55,7 @@ const History = () => {
             <th className="py-3 px-4 border-b">#</th>
             <th className="py-3 px-4 border-b">Email</th>
             <th className="py-3 px-4 border-b">Date</th>
-            <th className="py-3 px-4 border-b text-center">Download</th>
+            <th className="py-3 px-4 border-b text-center">Download </th>
           </tr>
         </thead>
         <tbody>

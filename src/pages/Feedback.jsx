@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom'; // Added useLocation
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { getAllAnswers, clearAnswers } from '../services/answerService';
 import { InterviewContext } from '../contexts/InterviewContext';
 import { generateFeedbackPDF } from '../utils/pdfGenerator';
@@ -7,7 +7,7 @@ import { saveInterviewResult } from '../services/firebaseService';
 
 const Feedback = () => {
   const navigate = useNavigate();
-  const { state } = useLocation(); // Now properly imported
+  const { state } = useLocation();
 
   const { questions: contextQuestions, setCurrentQuestionIndex, user } = useContext(InterviewContext);
   const stateQuestions = state?.questions || [];
@@ -40,7 +40,7 @@ const Feedback = () => {
 
     saveInterviewResult({
       ...finalFeedback,
-      questions: displayQuestions, // Use the display questions here
+      questions: displayQuestions,
       userName: user.name,
       userEmail: user.email,
     });
@@ -80,7 +80,7 @@ const Feedback = () => {
         ))}
       </div>
 
-      <div className="flex justify-center gap-4 mt-8">
+      <div className="flex justify-center gap-4 mt-8 flex-wrap">
         <button
           onClick={() => {
             setCurrentQuestionIndex(0);
@@ -115,6 +115,13 @@ const Feedback = () => {
         >
           Download Report
         </button>
+
+        <Link
+          to={`/userdashboard/${user.email}`}
+          className="bg-purple-600 text-white px-6 py-2 rounded hover:bg-purple-700 transition"
+        >
+          View Dashboard
+        </Link>
       </div>
     </div>
   );

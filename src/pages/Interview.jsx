@@ -10,7 +10,7 @@ import {
   createInterviewSession,
   saveAnswerToFirestore,
 } from '../services/firebaseService';
-import { analyzeAnswerWithOpenAI } from '../services/aiScoring';
+import { analyzeAnswerWithAI } from '../services/aiScoring';
 import { getDeepSeekQuestions } from '../services/deepseekClient';
 
 const Interview = () => {
@@ -136,7 +136,7 @@ const Interview = () => {
     if (!interviewSessionId || !currentQuestion) return;
 
     try {
-      const feedback = await analyzeAnswerWithOpenAI(answer);
+      const feedback = await analyzeAnswerWithAI(answer);
 
       const answerObj = {
         questionId: currentQuestion.id,

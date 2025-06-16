@@ -1,42 +1,48 @@
 import mockQuestions from '../data/mockInterview';
 
-const apiKey = process.env.VITE_DEEPSEEK_API_KEY;
+const apiKey = process.env.REACT_APP_OPENAI_API_KEY;
 
-export const getDeepSeekQuestions = async (skill) => {
+export const getDeepSeekQuestions = async (skill, difficulty = 'easy') => {
   if (!apiKey) {
-    console.warn("DeepSeek API key not provided. Using offline mock questions.");
+    console.warn("OpenAI API key not provided. Using offline mock questions.");
     return getOfflineQuestion(skill);
   }
 
   try {
-    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
+        'Authorization': `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
+        model: 'gpt-3.5-turbo', // or 'gpt-4'
         messages: [
           {
-            role: 'user',
-            content: `Generate a unique interview question related to the skill: ${skill}`,
+            role: 'system',
+            content: 'You are a technical interview question generator. Generate relevant questions based on the skill and difficulty level.'
           },
+          {
+            role: 'user',
+            content: `Generate a ${difficulty} level interview question about ${skill}. Make it concise and practical.`
+          }
         ],
+        temperature: 0.7,
         max_tokens: 100,
       }),
     });
 
-    const data = await response.json();
-
-    if (!response.ok || !data.choices?.[0]?.message?.content) {
-      console.error('DeepSeek API failed. Using offline mock question.');
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('OpenAI API Error:', errorData);
       return getOfflineQuestion(skill);
     }
 
-    return data.choices[0].message.content.trim();
+    const data = await response.json();
+    return data.choices[0]?.message?.content?.trim() || getOfflineQuestion(skill);
+    
   } catch (err) {
-    console.error('DeepSeek fetch error:', err);
+    console.error('OpenAI API fetch error:', err);
     return getOfflineQuestion(skill);
   }
 };

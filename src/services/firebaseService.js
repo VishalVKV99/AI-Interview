@@ -165,3 +165,51 @@ export const getInterviewResults = async () => {
     return [];
   }
 };
+// Add these new functions to your existing firebaseService.js
+export const saveUserAnalysis = async (userId, analysisData) => {
+  try {
+    const sanitizedData = deepSanitize({
+      ...analysisData,
+      lastUpdated: serverTimestamp()
+    });
+    
+    const userAnalyticsRef = doc(db, 'userAnalytics', userId);
+    await setDoc(userAnalyticsRef, sanitizedData, { merge: true });
+    console.log('User analysis saved successfully');
+  } catch (error) {
+    console.error("Error saving analysis:", error);
+    throw error;
+  }
+};
+
+export const getUserDashboardData = async (userId) => {
+  try {
+    const docRef = doc(db, 'userAnalytics', userId);
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      return docSnap.data();
+    }
+    console.log('No analytics data found for user');
+    return null;
+  } catch (error) {
+    console.error("Error getting dashboard data:", error);
+    throw error;
+  }
+};
+
+export const getCompleteInterviewResults = async (userId) => {
+  try {
+    const resultsRef = collection(db, 'users', userId, 'history');
+    const q = query(resultsRef, orderBy('createdAt', 'desc'));
+    const querySnapshot = await getDocs(q);
+    
+    return querySnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+  } catch (error) {
+    console.error("Error fetching interview results:", error);
+    throw error;
+  }
+};
