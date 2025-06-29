@@ -31,8 +31,8 @@ const Login = () => {
     <div
       className="flex justify-center items-center min-h-screen bg-cover bg-center"
       style={{
-        backgroundImage: "url('/signup.jpg')",
-        backgroundColor: '#1a1a1a',
+        // backgroundImage: "url('/signup.jpg')",
+        backgroundColor: '#bae0ff',
       }}
     >
       <div className="backdrop-blur-md bg-white/30 p-8 rounded-2xl shadow-2xl w-full max-w-md">
